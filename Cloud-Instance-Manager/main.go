@@ -17,11 +17,22 @@ var dryRun bool
 
 func init() {
 	dryRun = os.Getenv("DRY_RUN") == "true"
-	cfg, err := config.LoadDefaultConfig(context.TODO(), config.WithRegion("us-west-2"))
+	region := os.Getenv("AWS_REGION")
+	if region == "" {
+		region = "us-west-2"
+	}
+	cfg, err := config.LoadDefaultConfig(context.TODO(), config.WithRegion(region))
 	if err != nil {
 		log.Fatalf("Error al cargar la configuración de AWS: %v", err)
 	}
 	client = ec2.NewFromConfig(cfg)
+}
+
+func validarIDInstancia(instanceID string) error {
+	if len(instanceID) == 0 {
+		return fmt.Errorf("ID de instancia no válido")
+	}
+	return nil
 }
 
 func crearInstancia(amiID string) (string, error) {
@@ -33,9 +44,10 @@ func crearInstancia(amiID string) (string, error) {
 		DryRun:       &dryRun,
 	})
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("error al crear instancia: %v", err)
 	}
 	if dryRun {
+		fmt.Println("Operación de creación de instancia en modo DryRun")
 		return "i-00000000000000000", nil // ID de instancia ficticio para pruebas
 	}
 	return *result.Instances[0].InstanceId, nil
@@ -46,10 +58,10 @@ func listarInstancias() ([]types.Instance, error) {
 		DryRun: &dryRun,
 	})
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("error al listar instancias: %v", err)
 	}
 	if dryRun {
-		// Devolver instancias ficticias para pruebas
+		fmt.Println("Operación de listado de instancias en modo DryRun")
 		return []types.Instance{
 			{InstanceId: aws.String("i-00000000000000001"), State: &types.InstanceState{Name: types.InstanceStateNameRunning}},
 			{InstanceId: aws.String("i-00000000000000002"), State: &types.InstanceState{Name: types.InstanceStateNameStopped}},
@@ -63,27 +75,54 @@ func listarInstancias() ([]types.Instance, error) {
 }
 
 func iniciarInstancia(instanceID string) error {
+	if err := validarIDInstancia(instanceID); err != nil {
+		return err
+	}
 	_, err := client.StartInstances(context.TODO(), &ec2.StartInstancesInput{
 		InstanceIds: []string{instanceID},
 		DryRun:      &dryRun,
 	})
-	return err
+	if err != nil {
+		return fmt.Errorf("error al iniciar instancia: %v", err)
+	}
+	if dryRun {
+		fmt.Println("Operación de inicio de instancia en modo DryRun")
+	}
+	return nil
 }
 
 func detenerInstancia(instanceID string) error {
+	if err := validarIDInstancia(instanceID); err != nil {
+		return err
+	}
 	_, err := client.StopInstances(context.TODO(), &ec2.StopInstancesInput{
 		InstanceIds: []string{instanceID},
 		DryRun:      &dryRun,
 	})
-	return err
+	if err != nil {
+		return fmt.Errorf("error al detener instancia: %v", err)
+	}
+	if dryRun {
+		fmt.Println("Operación de detención de instancia en modo DryRun")
+	}
+	return nil
 }
 
 func terminarInstancia(instanceID string) error {
+	if err := validarIDInstancia(instanceID); err != nil {
+		return err
+	}
 	_, err := client.TerminateInstances(context.TODO(), &ec2.TerminateInstancesInput{
 		InstanceIds: []string{instanceID},
 		DryRun:      &dryRun,
 	})
-	return err
+	if err != nil {
+		return fmt.Errorf("error al terminar instancia: %v", err)
+	}
+	if dryRun {
+		fmt.Println("Operación de terminación de instancia en modo DryRun")
+	}
+	return nil
 }
 
 func main() {
