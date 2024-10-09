@@ -194,3 +194,196 @@ Si encuentras algún problema o error en el código, por favor, abre un issue en
 
 ---
 
+# Cloud-Instance-Manager
+
+This project is a minimalist cloud instance manager written in Go. It allows you to create, list, start, stop, and terminate cloud instances in a secure and efficient manner. The goal of this project is to provide a simple and easy-to-use tool for managing cloud instances on Amazon Web Services (AWS).
+
+## Features
+
+* Create cloud instances with a single API call
+* List cloud instances in a specific region
+* Start, stop, and terminate cloud instances securely
+* DryRun mode to test the code without affecting real resources
+* Support for low-cost cloud instances (t2.micro)
+* Support for cloud instances with different instance types (t2.micro, t2.small, etc.)
+
+## Requirements
+
+* Go 1.17 or higher
+* AWS SDK for Go
+* AWS credentials with limited permissions
+* A valid AWS account
+
+## Setup
+
+### 1. AWS Credentials Configuration
+
+Ensure you have an AWS credentials file configured on your machine. You can do this by running the following command:
+
+```sh
+aws configure
+```
+
+This will prompt you to enter your `AWS Access Key ID`, `AWS Secret Access Key`, default region, and output format. If you already have this file configured, you can skip this step.
+
+### 2. Region Configuration
+
+You can configure the AWS region via an environment variable. If not specified, the default region `us-west-2` will be used.
+
+```sh
+export AWS_REGION=your-region
+```
+
+### 3. DryRun Mode
+
+You can enable DryRun mode to test the code without making actual changes to AWS resources.
+
+```sh
+export DRY_RUN=true
+```
+
+## Installation
+
+1. Clone the repository:
+
+   ```sh
+   git clone https://github.com/elliotsecops/Cloud-Instance-Manager.git
+   ```
+
+2. Navigate to the project directory:
+
+   ```sh
+   cd Cloud-Instance-Manager
+   ```
+
+3. Install the dependencies:
+
+   ```sh
+   go get -u github.com/aws/aws-sdk-go-v2/aws
+   ```
+
+## Usage
+
+### 1. Run the Program
+
+To run the program, simply execute the following command:
+
+```sh
+go run main.go
+```
+
+### 2. Command Examples
+
+#### Create an Instance
+
+The program will create an instance with the default AMI `ami-12345678`. You can change the AMI in the code if you wish.
+
+```go
+instanceID, err := crearInstancia("ami-12345678")
+if err != nil {
+    log.Fatalf("Error creating instance: %v", err)
+}
+fmt.Printf("Instance created: %s\n", instanceID)
+```
+
+#### List Instances
+
+The program will list all instances in the specified region.
+
+```go
+instances, err := listarInstancias()
+if err != nil {
+    log.Fatalf("Error listing instances: %v", err)
+}
+for _, instance := range instances {
+    fmt.Printf("ID: %s, State: %s\n", *instance.InstanceId, instance.State.Name)
+}
+```
+
+#### Start an Instance
+
+The program will start the previously created instance.
+
+```go
+if err := iniciarInstancia(instanceID); err != nil {
+    log.Fatalf("Error starting instance: %v", err)
+}
+fmt.Println("Instance started")
+```
+
+#### Stop an Instance
+
+The program will stop the previously created instance.
+
+```go
+if err := detenerInstancia(instanceID); err != nil {
+    log.Fatalf("Error stopping instance: %v", err)
+}
+fmt.Println("Instance stopped")
+```
+
+#### Terminate an Instance
+
+The program will terminate the previously created instance.
+
+```go
+if err := terminarInstancia(instanceID); err != nil {
+    log.Fatalf("Error terminating instance: %v", err)
+}
+fmt.Println("Instance terminated")
+```
+
+## Testing
+
+### DryRun Mode
+
+To test the code without making actual changes to AWS resources, you can enable DryRun mode:
+
+```sh
+export DRY_RUN=true
+go run main.go
+```
+
+### Unit Tests
+
+To run the unit tests, use the following command:
+
+```sh
+go test -v
+```
+
+### Integration Tests
+
+To run the integration tests, use the following command:
+
+```sh
+go test -v -tags=integration
+```
+
+## License
+
+This project is licensed under the MIT License. This means you can use, modify, and distribute the code freely, as long as the original license is included and its terms and conditions are respected.
+
+## Contributions
+
+If you wish to contribute to this project, please follow these steps:
+
+1. Clone the repository:
+
+   ```sh
+   git clone https://github.com/elliotsecops/Cloud-Instance-Manager.git
+   ```
+
+2. Create a new branch:
+
+   ```sh
+   git branch my-branch
+   ```
+
+3. Make your changes
+
+4. Submit a pull request with your changes
+
+## Issues and Bugs
+
+If you find any issues or bugs in the code, please open an issue on the GitHub repository. This will help us identify and fix the problem more quickly.
